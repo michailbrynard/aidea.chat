@@ -6,8 +6,23 @@ import { Readability } from '@mozilla/readability';
 import endent from 'endent';
 import jsdom, { JSDOM } from 'jsdom';
 import { NextApiRequest, NextApiResponse } from 'next';
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createRequest } from '@/utils/database';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
+  // Create authenticated Supabase Client
+  const supabase = createServerSupabaseClient({ req, res })
+  // Check if we have a session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session)
+    return res.status(401).json({
+      error: 'not_authenticated',
+      description: 'Please log in to access this functionality',
+    })
+
   try {
     const { messages, key, model, googleAPIKey, googleCSEId } =
       req.body as GoogleBody;
@@ -132,9 +147,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       }),
     });
 
-    const { choices: choices2 } = await answerRes.json();
+    const { choices: choices2, usage } = await answerRes.json();
     const answer = choices2[0].message.content;
-
+    await createRequest(
+      {
+       user_id: session.user.id, 
+       prompt_tokens: usage.prompt_tokens,
+       completion_tokens: usage.completion_tokens,
+       model: model.id,
+       status: 'succeeded'
+      }
+    )
     res.status(200).json({ answer });
   } catch (error) {
     return new Response('Error', { status: 500 });
