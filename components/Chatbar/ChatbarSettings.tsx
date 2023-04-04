@@ -1,3 +1,4 @@
+import { IconLogout } from '@tabler/icons-react';
 import { SupportedExportFormats } from '@/types/export';
 import { PluginKey } from '@/types/plugin';
 import { IconFileExport, IconMoon, IconSun } from '@tabler/icons-react';
@@ -8,6 +9,8 @@ import { Key } from '../Settings/Key';
 import { SidebarButton } from '../Sidebar/SidebarButton';
 import { ClearConversations } from './ClearConversations';
 import { PluginKeys } from './PluginKeys';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useRouter } from 'next/router';
 
 interface Props {
   lightMode: 'light' | 'dark';
@@ -37,6 +40,8 @@ export const ChatbarSettings: FC<Props> = ({
   onClearPluginKey,
 }) => {
   const { t } = useTranslation('sidebar');
+  const supabaseClient = useSupabaseClient();
+  const router = useRouter();
 
   return (
     <div className="flex flex-col items-center space-y-1 border-t border-white/20 pt-1 text-sm">
@@ -62,13 +67,19 @@ export const ChatbarSettings: FC<Props> = ({
         }
       />
 
-      <Key apiKey={apiKey} onApiKeyChange={onApiKeyChange} />
+    <SidebarButton
+      text={t('Sign out')}
+      icon={<IconLogout size={18} />}
+      onClick={() => supabaseClient.auth.signOut().then(()=>router.push('/login'))}
+    />
 
-      <PluginKeys
+      {/* <Key apiKey={apiKey} onApiKeyChange={onApiKeyChange} /> */}
+
+      {/* <PluginKeys
         pluginKeys={pluginKeys}
         onPluginKeyChange={onPluginKeyChange}
         onClearPluginKey={onClearPluginKey}
-      />
+      /> */}
     </div>
   );
 };

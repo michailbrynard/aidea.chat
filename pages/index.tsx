@@ -36,12 +36,15 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { createServerSupabaseClient, Session, User } from '@supabase/auth-helpers-nextjs'
 import { v4 as uuidv4 } from 'uuid';
 
 interface HomeProps {
   serverSideApiKeyIsSet: boolean;
   serverSidePluginKeysSet: boolean;
   defaultModelId: OpenAIModelID;
+  initialSession: Session;
+  user: User;
 }
 
 const Home: React.FC<HomeProps> = ({
@@ -49,6 +52,7 @@ const Home: React.FC<HomeProps> = ({
   serverSidePluginKeysSet,
   defaultModelId,
 }) => {
+
   const { t } = useTranslation('chat');
 
   // STATE ----------------------------------------------
@@ -858,7 +862,23 @@ const Home: React.FC<HomeProps> = ({
 };
 export default Home;
 
-export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+
+  // Create authenticated Supabase Client
+  const supabase = createServerSupabaseClient(ctx)
+  // Check if we have a session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session)
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    }
+  
   const defaultModelId =
     (process.env.DEFAULT_MODEL &&
       Object.values(OpenAIModelID).includes(
@@ -878,10 +898,12 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
 
   return {
     props: {
+      initialSession: session,
+      user: session.user,
       serverSideApiKeyIsSet: !!process.env.OPENAI_API_KEY,
       defaultModelId,
       serverSidePluginKeysSet,
-      ...(await serverSideTranslations(locale ?? 'en', [
+      ...(await serverSideTranslations(ctx.locale ?? 'en', [
         'common',
         'chat',
         'sidebar',
