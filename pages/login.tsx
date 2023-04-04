@@ -15,7 +15,6 @@ const LoginPage = () => {
       <div className="w-full h-screen flex justify-center items-center">
         <div className="bg-white p-8 rounded-lg shadow-lg w-96">
           <Auth
-            redirectTo="http://localhost:3000"
             appearance={{ theme: ThemeSupa }}
             supabaseClient={supabaseClient}
             providers={[]}
