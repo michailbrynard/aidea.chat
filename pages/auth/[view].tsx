@@ -1,14 +1,11 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa, ViewType } from '@supabase/auth-ui-shared'
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
-import { createServerSupabaseClient, Session, User } from '@supabase/auth-helpers-nextjs'
 import { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 
 interface AuthProps {
     view: ViewType | undefined
-    user: User | null
-    session: Session | null
 }
 
 function isViewType(view: unknown): view is ViewType {
@@ -21,9 +18,10 @@ function isViewType(view: unknown): view is ViewType {
     );
 }
 
-const AuthPage: React.FC<AuthProps> = ({ view, user }) => {
+const AuthPage: React.FC<AuthProps> = ({ view }) => {
     const supabaseClient = useSupabaseClient()
     const router = useRouter()
+    const user = useUser()
 
     if (!user)
         return (
@@ -35,7 +33,6 @@ const AuthPage: React.FC<AuthProps> = ({ view, user }) => {
                         providers={[]}
                         view={view}
                         socialLayout="horizontal"
-                        redirectTo='/'
                     />
                 </div>
             </div>
@@ -64,27 +61,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         };
     }
 
-    // Create authenticated Supabase Client
-    const supabase = createServerSupabaseClient(ctx)
-    // Check if we have a session
-    const {
-        data: { session },
-    } = await supabase.auth.getSession()
-
-    if (session)
-        return {
-            redirect: {
-                destination: '/',
-                permanent: false,
-                props: { initialSession: session, user: session.user, view: view },
-            },
-        }
-
     return {
         props: {
             view: view,
-            session: null,
-            user: null,
         }
     }
 };
