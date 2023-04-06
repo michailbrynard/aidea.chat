@@ -74,7 +74,7 @@ export const ChatbarSettings: FC<Props> = ({
       <SidebarButton
         text={t('Sign out')}
         icon={<IconLogout size={18} />}
-        onClick={() => supabaseClient.auth.signOut().then(() => router.push('/login'))}
+        onClick={() => supabaseClient.auth.signOut().then(() => router.push('/auth/sign_in'))}
       />
 
       {!(serverSideApiKeyIsSet) ? (
