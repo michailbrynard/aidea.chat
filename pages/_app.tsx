@@ -1,15 +1,20 @@
-import '@/styles/globals.css';
+import { Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
 import { appWithTranslation } from 'next-i18next';
 import type { AppProps } from 'next/app';
 import { Inter } from 'next/font/google';
-import { Toaster } from 'react-hot-toast';
+
 import { createBrowserSupabaseClient, SupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider, Session } from '@supabase/auth-helpers-react'
 import { useEffect, useState } from 'react'
 
+import '@/styles/globals.css';
+
 const inter = Inter({ subsets: ['latin'] });
 
 function App({ Component, pageProps }: AppProps<{ initialSession: Session }>) {
+  const queryClient = new QueryClient();
   const [supabaseClient, setSupabaseClient] = useState<SupabaseClient<any, "public", any> | null>(null);
   
   useEffect(() => {
@@ -21,15 +26,18 @@ function App({ Component, pageProps }: AppProps<{ initialSession: Session }>) {
   }
 
   return (
-    <SessionContextProvider
+    
+    <div className={inter.className}>
+          <SessionContextProvider
       supabaseClient={supabaseClient}
       initialSession={pageProps.initialSession}
     >
-      <div className={inter.className}>
-        <Toaster />
+      <Toaster />
+      <QueryClientProvider client={queryClient}>
         <Component {...pageProps} />
-      </div>
-    </SessionContextProvider>
+      </QueryClientProvider>
+      </SessionContextProvider>
+    </div>
   );
 }
 

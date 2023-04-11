@@ -1,7 +1,11 @@
-import { Message } from '@/types/chat';
-import { GoogleBody, GoogleSource } from '@/types/google';
+import { NextApiRequest, NextApiResponse } from 'next';
+
 import { OPENAI_API_HOST } from '@/utils/app/const';
 import { cleanSourceText } from '@/utils/server/google';
+
+import { Message } from '@/types/chat';
+import { GoogleBody, GoogleSource } from '@/types/google';
+
 import { Readability } from '@mozilla/readability';
 import endent from 'endent';
 import jsdom, { JSDOM } from 'jsdom';
@@ -28,13 +32,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       req.body as GoogleBody;
 
     const userMessage = messages[messages.length - 1];
+    const query = encodeURIComponent(userMessage.content.trim());
 
     const googleRes = await fetch(
       `https://customsearch.googleapis.com/customsearch/v1?key=${
         googleAPIKey ? googleAPIKey : process.env.GOOGLE_API_KEY
       }&cx=${
         googleCSEId ? googleCSEId : process.env.GOOGLE_CSE_ID
-      }&q=${userMessage.content.trim()}&num=5`,
+      }&q=${query}&num=5`,
     );
 
     const googleData = await googleRes.json();
@@ -160,7 +165,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     )
     res.status(200).json({ answer });
   } catch (error) {
-    return new Response('Error', { status: 500 });
+    console.error(error);
+    res.status(500).json({ error: 'Error'})
   }
 };
 
