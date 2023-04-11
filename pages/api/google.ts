@@ -9,7 +9,6 @@ import { GoogleBody, GoogleSource } from '@/types/google';
 import { Readability } from '@mozilla/readability';
 import endent from 'endent';
 import jsdom, { JSDOM } from 'jsdom';
-import { NextApiRequest, NextApiResponse } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { createRequest } from '@/utils/database';
 
