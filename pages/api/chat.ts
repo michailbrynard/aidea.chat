@@ -1,4 +1,4 @@
-import { DEFAULT_SYSTEM_PROMPT } from '@/utils/app/const';
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
 import tiktokenModel from '@dqbd/tiktoken/encoders/cl100k_base.json';
 import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
@@ -50,7 +50,8 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     return new Response('Error', { status: 401, statusText: "Please log in to use this functionality" });
   }
   try {
-    const { model, messages, key, prompt } = (await req.json()) as ChatBody;
+    const { model, messages, key, prompt, temperature } = (await req.json()) as ChatBody;
+
     await init((imports) => WebAssembly.instantiate(wasm, imports));
     const encoding = new Tiktoken(
       tiktokenModel.bpe_ranks,
@@ -61,6 +62,11 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
     let promptToSend = prompt;
     if (!promptToSend) {
       promptToSend = DEFAULT_SYSTEM_PROMPT;
+    }
+
+    let temperatureToUse = temperature;
+    if (temperatureToUse == null) {
+      temperatureToUse = DEFAULT_TEMPERATURE;
     }
 
     const prompt_tokens = encoding.encode(promptToSend);
@@ -85,7 +91,7 @@ const handler = async (req: Request, res: Response): Promise<Response> => {
 
     encoding.free();
 
-    const stream = await OpenAIStream(model, promptToSend, key, messagesToSend);
+    const stream = await OpenAIStream(model, promptToSend, temperatureToUse, key, messagesToSend);
 
     updateRequest(request.id, { completion_tokens: tokenCount, status: 'succeeded' })
 
