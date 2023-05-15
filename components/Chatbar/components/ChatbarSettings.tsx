@@ -1,9 +1,11 @@
-import { IconFileExport, IconMoon, IconSun, IconLogout } from '@tabler/icons-react';
-import { useContext } from 'react';
+import { IconFileExport, IconLogout, IconSettings } from '@tabler/icons-react';
+import { useContext, useState } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
 import HomeContext from '@/pages/api/home/home.context';
+
+import { SettingDialog } from '@/components/Settings/SettingDialog';
 
 import { Import } from '../../Settings/Import';
 import { Key } from '../../Settings/Key';
@@ -17,6 +19,7 @@ import { useRouter } from 'next/router';
 
 export const ChatbarSettings = () => {
   const { t } = useTranslation('sidebar');
+  const [isSettingDialogOpen, setIsSettingDialog] = useState<boolean>(false);
 
   const {
     state: {
@@ -33,7 +36,6 @@ export const ChatbarSettings = () => {
     handleClearConversations,
     handleImportConversations,
     handleExportData,
-
     handleApiKeyChange,
   } = useContext(ChatbarContext);
 
@@ -55,16 +57,9 @@ export const ChatbarSettings = () => {
       />
 
       <SidebarButton
-        text={lightMode === 'light' ? t('Dark mode') : t('Light mode')}
-        icon={
-          lightMode === 'light' ? <IconMoon size={18} /> : <IconSun size={18} />
-        }
-        onClick={() =>
-          homeDispatch({
-            field: 'lightMode',
-            value: lightMode === 'light' ? 'dark' : 'light',
-          })
-        }
+        text={t('Settings')}
+        icon={<IconSettings size={18} />}
+        onClick={() => setIsSettingDialog(true)}
       />
 
       <SidebarButton
@@ -78,6 +73,13 @@ export const ChatbarSettings = () => {
       ) : null}
 
       {!serverSidePluginKeysSet ? <PluginKeys /> : null}
+
+      <SettingDialog
+        open={isSettingDialogOpen}
+        onClose={() => {
+          setIsSettingDialog(false);
+        }}
+      />
     </div>
   );
 };
